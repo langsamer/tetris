@@ -1,12 +1,12 @@
-from common import COLUMNS, ROWS, draw_block, colors, grid
-
-
 class Tetromino:
-    def __init__(self, screen, shape, column, row):
+    def __init__(self, screen, shape, column, row, draw_block, to_grid, grid_free):
         self.screen = screen
         self.matrix = shape
         self.column = column
         self.row = row
+        self.draw_block = draw_block
+        self.to_grid = to_grid
+        self.grid_free = grid_free
 
     def _to_shape(self):
         return [
@@ -31,7 +31,7 @@ class Tetromino:
             if color:
                 c = column + n % 4
                 r = row + n // 4
-                if c < 0 or c >= COLUMNS or r >= ROWS or grid[r * COLUMNS + c]:
+                if not self.grid_free(c, r):
                     return False
         return True
 
@@ -40,10 +40,9 @@ class Tetromino:
             if color:
                 c = n % 4
                 r = n // 4
-                draw_block(self.screen,
-                           (self.column + c) % COLUMNS,
-                           (self.row + r) % ROWS,
-                           color)
+                self.draw_block(self.column + c,
+                                self.row + r,
+                                color)
 
     def move(self, dx, dy):
         new_c = self.column + dx
@@ -59,4 +58,4 @@ class Tetromino:
             if color:
                 c = (n % 4) + self.column
                 r = (n // 4) + self.row
-                grid[r*COLUMNS + c] = color
+                self.to_grid(c, r, color)
