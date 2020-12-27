@@ -3,8 +3,8 @@ import random
 
 import pygame
 
-from common import VOFFSET, BLOCKSIZE, COLUMNS, ROWS, WIDTH, HEIGHT, tetrominoes, EV_ADVANCEGAME, grid, colors, \
-    grid2screen, draw_score, draw_gameover
+from common import COLUMNS, ROWS, WIDTH, HEIGHT, tetrominoes, EV_ADVANCEGAME, grid, draw_score, draw_gameover, \
+    draw_block, empty_grid
 from tetromino import Tetromino
 
 clock = pygame.time.Clock()
@@ -28,10 +28,14 @@ def mainloop(screen):
     global game_over, score
     player = Tetromino(screen, random.choice(tetrominoes), COLUMNS // 2 - 2, 0)
     done = False
+    quitting = False
+    game_over = False
+    score = 0
     while not done:
         for event in pygame.event.get():
             if event.type == pygame.QUIT:
                 done = True
+                quitting = True
             if event.type == EV_ADVANCEGAME:
                 if not player.move(0, 1):
                     player.freeze()
@@ -58,17 +62,18 @@ def mainloop(screen):
         pygame.display.flip()
         clock.tick(FPS)
 
-    done = False
     # "Press any key to continue"
-    while not done:
+    while not quitting:
         for event in pygame.event.get():
             clock.tick(10)
             if event.type == pygame.KEYDOWN:
                 game_over = False
-                done = True
+                quitting = False
             if event.type == pygame.QUIT:
                 game_over = True
-                done = True
+                quitting = True
+
+    return quitting
 
 
 def draw_screen(screen):
@@ -83,18 +88,7 @@ def draw_grid(screen):
     for n, c in enumerate(grid):
         col = n % COLUMNS
         row = n // COLUMNS
-        x, y = grid2screen(col, row)
-        pygame.draw.rect(screen,
-                         color=colors[c],
-                         rect=(x, y, BLOCKSIZE, BLOCKSIZE),
-                         )
-
-
-def draw_lattice(screen):
-    for row in range(ROWS):
-        for col in range(COLUMNS):
-            pygame.draw.rect(screen, color=(50, 10, 150), rect=(col * BLOCKSIZE, VOFFSET + row * BLOCKSIZE, BLOCKSIZE,
-                                                                BLOCKSIZE), width=1)
+        draw_block(screen, col, row, color=c)
 
 
 def run_game():
@@ -103,9 +97,12 @@ def run_game():
     pygame.display.set_caption("Tetris")
     pygame.key.set_repeat(200, 50)
     pygame.time.set_timer(EV_ADVANCEGAME, ADVANCE_DELAY)
-    draw_screen(screen)
-    while not game_over:
-        mainloop(screen)
+    while True:
+        empty_grid()
+        draw_screen(screen)
+        quitting = mainloop(screen)
+        if quitting:
+            break
     pygame.quit()
 
 

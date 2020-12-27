@@ -43,7 +43,7 @@ class Tetromino:
                 draw_block(self.screen,
                            (self.column + c) % COLUMNS,
                            (self.row + r) % ROWS,
-                           colors[color])
+                           color)
 
     def move(self, dx, dy):
         new_c = self.column + dx
